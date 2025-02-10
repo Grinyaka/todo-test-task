@@ -1,5 +1,12 @@
 import {JsonObject} from 'src/types'
 
+
+export interface IProjectModel {
+  id: number
+  title: string
+  tasksAmount: number
+}
+
 export class ProjectModel {
   public static valueOfJson(json: JsonObject<ProjectModel>) {
     return new ProjectModel(json.id, json.title, json.tasksAmount)

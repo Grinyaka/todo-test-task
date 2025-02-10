@@ -1,0 +1,9 @@
+.card {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 5px;
+  width: 250px;
+  height: 250px;
+  
+}
