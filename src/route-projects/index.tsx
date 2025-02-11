@@ -1,15 +1,14 @@
 import styles from './styles.module.css'
 import {Link} from 'react-router-dom'
+import Spinner from 'src/components/Spinner'
 import useProjects from 'src/hooks/useProjects'
 
 const RouteProjects = () => {
   const {projects, isLoading, newProjectTitle, handleCreate, handleDelete, handleChange} = useProjects()
 
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
-
-  return (
+  return isLoading ? (
+    <Spinner />
+  ) : (
     <>
       <form
         onSubmit={(e) => {

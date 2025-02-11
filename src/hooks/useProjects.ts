@@ -3,14 +3,16 @@ import {useInject} from 'src/Injection'
 import {CreateProjectInteractor} from 'src/interactors/CreateProjectInteractor'
 import {DeleteProjectInteractor} from 'src/interactors/DeleteProjectInteractor'
 import {GetProjectsListInteractor} from 'src/interactors/GetProjectsListInteractor'
-import {ProjectModel} from 'src/models/ProjectModel'
+import {addProject, deleteProject, setProjects} from 'src/redux/actions/projectActions'
+import {useAppDispatch, useAppSelector} from 'src/redux/hooks'
 
 const useProjects = () => {
-  const [projects, setProjects] = useState<ProjectModel[]>([])
+  const {projects} = useAppSelector((state) => state.projects)
+  const dispatch = useAppDispatch()
   const [isLoading, setIsLoading] = useState(true)
-  const getProjectsList: GetProjectsListInteractor = useInject(GetProjectsListInteractor)
-  const createProject: CreateProjectInteractor = useInject(CreateProjectInteractor)
-  const deleteProject: DeleteProjectInteractor = useInject(DeleteProjectInteractor)
+  const getProjectsListInteractor: GetProjectsListInteractor = useInject(GetProjectsListInteractor)
+  const createProjectInteractor: CreateProjectInteractor = useInject(CreateProjectInteractor)
+  const deleteProjectInteractor: DeleteProjectInteractor = useInject(DeleteProjectInteractor)
 
   const [newProjectTitle, setNewProjectTitle] = useState('')
 
@@ -20,16 +22,16 @@ const useProjects = () => {
 
   const handleDelete = async (projectId: number) => {
     try {
-      await deleteProject.invoke({projectId})
-      setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId))
+      await deleteProjectInteractor.invoke({projectId})
+      dispatch(deleteProject({projectId}))
     } catch (error) {
       console.error('Error deleting project:', error)
     }
   }
   const handleCreate = async () => {
     try {
-      const newProject = await createProject.invoke({projectTitle: newProjectTitle})
-      setProjects((prevProjects) => [...prevProjects, newProject])
+      const newProject = await createProjectInteractor.invoke({projectTitle: newProjectTitle})
+      dispatch(addProject({project: newProject}))
       setNewProjectTitle('')
     } catch (error) {
       console.error('Error creating project:', error)
@@ -40,8 +42,9 @@ const useProjects = () => {
     const fetchProjects = async () => {
       setIsLoading(true)
       try {
-        const projects = await getProjectsList.invoke({})
-        setProjects(projects)
+        await getProjectsListInteractor.invoke({}).then((response) => {
+          dispatch(setProjects({projects: response}))
+        })
       } finally {
         setIsLoading(false)
       }
@@ -51,7 +54,6 @@ const useProjects = () => {
 
     return () => {
       setIsLoading(true)
-      setProjects([])
     }
   }, [])
 

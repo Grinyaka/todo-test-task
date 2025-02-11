@@ -6,10 +6,13 @@ import {DeleteTaskInteractor} from 'src/interactors/DeleteTaskInteractor'
 import {GetTasksListInteractor} from 'src/interactors/GetTasksListInteractor'
 import {TaskModel, TaskPriority, TaskStatus} from 'src/models/TaskModel'
 import {TaskPOSTRequest} from 'src/models/TaskPOSTRequest'
+import {addTask, deleteTask, setTaskList} from 'src/redux/actions/taskActions'
+import {useAppDispatch, useAppSelector} from 'src/redux/hooks'
 
 export const useTasks = (taskStatus: TaskStatus) => {
+  const {done, queue, development} = useAppSelector((state) => state.tasks)
+  const dispatch = useAppDispatch()
   const [loading, setLoading] = useState(true)
-  const [taskList, setTaskList] = useState<TaskModel[]>([])
   const createTaskInteractor = useInject<CreateTaskInteractor>(CreateTaskInteractor)
   const deleteTaskInteractor = useInject<DeleteTaskInteractor>(DeleteTaskInteractor)
   const getTasksInteractor = useInject<GetTasksListInteractor>(GetTasksListInteractor)
@@ -18,32 +21,36 @@ export const useTasks = (taskStatus: TaskStatus) => {
 
   const {id} = useParams()
   const projectId = Number(id)
-
+  const tasks = {
+    [TaskStatus.done]: done,
+    [TaskStatus.queue]: queue,
+    [TaskStatus.development]: development,
+  } 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewTaskTitle(event.target.value || '')
   }
-  const createTask = async (taskName: string) => {
+  const handleCreateTask = async (taskName: string) => {
     const request = new TaskPOSTRequest(taskName, taskStatus, projectId)
     try {
       const newTask = await createTaskInteractor.invoke({
         projectId,
         request,
-        currentTaskAmount: taskList.length,
+        currentTaskAmount: Object.values(tasks).length,
       })
-      setTaskList((prevTasks) => [...prevTasks, newTask])
+      dispatch(addTask({task: newTask, taskStatus}))
     } catch (error) {
       console.error('Error creating task:', error)
     }
   }
 
-  const deleteTask = async (taskId: number) => {
+  const handleDeleteTask = async (task: TaskModel) => {
     try {
       await deleteTaskInteractor.invoke({
         projectId,
-        taskId,
-        currentTaskAmount: taskList.length,
+        taskId: task.id,
+        currentTaskAmount: Object.values(tasks).length,
       })
-      setTaskList((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
+      dispatch(deleteTask({task, taskStatus}))
     } catch (error) {
       console.error('Error deleting task:', error)
     }
@@ -54,7 +61,7 @@ export const useTasks = (taskStatus: TaskStatus) => {
       setLoading(true)
       try {
         const tasks = await getTasksInteractor.invoke({projectId, taskStatus})
-        setTaskList(tasks)
+        dispatch(setTaskList({tasks, taskStatus}))
       } finally {
         setLoading(false)
       }
@@ -64,16 +71,15 @@ export const useTasks = (taskStatus: TaskStatus) => {
 
     return () => {
       setLoading(true)
-      setTaskList([])
     }
   }, [projectId, taskStatus])
 
   return {
-    taskList,
+    tasks,
     loading,
     newTaskTitle,
     handleChange,
-    createTask,
-    deleteTask,
+    handleCreateTask,
+    handleDeleteTask,
   }
 }

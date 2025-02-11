@@ -44,7 +44,7 @@ export class TasksRepositoryLocal extends TasksRepository {
       new Date(),
       TaskPriority.low,
       [],
-      TaskStatus.queue,
+      request.status,
       [],
       [],
     )
@@ -86,7 +86,7 @@ export class TasksRepositoryLocal extends TasksRepository {
     return new Response('OK', {status: 200})
   }
 
-  public async deleteTask(projectId: number, taskId: number): Promise<any> {
+  public async deleteTask(projectId: number, taskId: number): Promise<null | Response> {
     const tasks = this.allTasks[projectId] || []
 
     const taskIndex = tasks.findIndex((task) => task.id === taskId)
