@@ -3,6 +3,7 @@ import styles from './styles.module.css'
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTasks} from 'src/hooks/useTasks'
 import {TaskStatus} from 'src/models/TaskModel'
+import TaskModal from './task-modal/TaskModal'
 
 type Props = {
   status: TaskStatus
@@ -29,21 +30,7 @@ const StatusColumn = ({status}: Props) => {
               ref={provided.innerRef}
             >
               {currentTasks.map((task, index) => (
-                <Draggable
-                  key={task.id.toString()}
-                  draggableId={task.id.toString()}
-                  index={index}
-                >
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <div className={styles.cardTitle}>{task.title}</div>
-                    </div>
-                  )}
-                </Draggable>
+                  <TaskModal task={task} index={index} />
               ))}
               {provided.placeholder}
             </div>

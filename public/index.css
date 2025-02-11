@@ -23,16 +23,24 @@
   --font-size-large: 16px;
   --font-size-xlarge: 18px;
 }
+
 html,
 body {
   overflow: hidden;
   height: 100dvh;
   margin: 0;
 }
+
 #root {
   display: flex;
   height: 100%;
 }
+
+#modal-root {
+  position: relative;
+  z-index: 999;
+}
+
 body {
   background-color: var(--background-primary);
   color: var(--text-primary);
