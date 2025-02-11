@@ -1,3 +1,4 @@
+import { ChangeTaskInteractor } from './interactors/ChangeTaskInteractor'
 import {CreateProjectInteractor} from './interactors/CreateProjectInteractor'
 import {CreateTaskInteractor} from './interactors/CreateTaskInteractor'
 import {DeleteProjectInteractor} from './interactors/DeleteProjectInteractor'
@@ -97,6 +98,14 @@ injectionKernel.set(
   DeleteProjectInteractor,
   new Factory<DeleteProjectInteractor>(
     () => new DeleteProjectInteractor(getDIValue(ProjectsRepository), getDIValue(TasksRepository)),
+    false,
+  ),
+)
+
+injectionKernel.set(
+  ChangeTaskInteractor,
+  new Factory<ChangeTaskInteractor>(
+    () => new ChangeTaskInteractor(getDIValue(TasksRepository)),
     false,
   ),
 )

@@ -1,8 +1,8 @@
-import {TasksRepository} from './TasksRepository'
-import {TaskModel, TaskPriority, TaskStatus} from 'src/models/TaskModel'
-import {JsonObject} from 'src/types'
-import {TaskPOSTRequest} from 'src/models/TaskPOSTRequest'
-import {TaskPUTRequest} from 'src/models/TaskPUTRequest'
+import { TaskModel, TaskPriority, TaskStatus } from 'src/models/TaskModel'
+import { TaskPOSTRequest } from 'src/models/TaskPOSTRequest'
+import { TaskPUTRequest } from 'src/models/TaskPUTRequest'
+import { JsonObject } from 'src/types'
+import { TasksRepository } from './TasksRepository'
 
 export class TasksRepositoryLocal extends TasksRepository {
   // так, конечно, плохо делать, но тут пока что можно
@@ -22,7 +22,7 @@ export class TasksRepositoryLocal extends TasksRepository {
 
     const storedData = localStorage.getItem(this.STORAGE_TASKS_NAME)
     if (!storedData) return []
-    const parsedData: JsonObject<{[key:number]: TaskModel[]}> = JSON.parse(storedData)
+    const parsedData: JsonObject<{[key: number]: TaskModel[]}> = JSON.parse(storedData)
     const tasksForProject = parsedData[projectId]
     if (!tasksForProject) return []
 
@@ -56,13 +56,14 @@ export class TasksRepositoryLocal extends TasksRepository {
     return newTask
   }
 
-  public async updateTask(projectId: number, request: TaskPUTRequest): Promise<Response> {
+  public async updateTask(
+    projectId: number,
+    request: TaskPUTRequest,
+  ): Promise<TaskModel> {
     const projectTasks = this.allTasks[projectId] || []
     const taskIndex = projectTasks.findIndex((task) => task.id === request.id)
 
-    if (taskIndex === -1) {
-      return new Response('Task not found', {status: 404})
-    }
+    if (taskIndex === -1) throw new Error('Task not found')
 
     const task = projectTasks[taskIndex]
     const updatedTask = {
@@ -83,7 +84,7 @@ export class TasksRepositoryLocal extends TasksRepository {
 
     localStorage.setItem(this.STORAGE_TASKS_NAME, JSON.stringify(this.allTasks))
 
-    return new Response('OK', {status: 200})
+    return updatedTask
   }
 
   public async deleteTask(projectId: number, taskId: number): Promise<null | Response> {

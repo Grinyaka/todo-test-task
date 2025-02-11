@@ -10,7 +10,7 @@ export abstract class TasksRepository {
 
   public abstract addTask(request: TaskPOSTRequest): Promise<TaskModel>
 
-  public abstract updateTask(projectId: number, request: TaskPUTRequest): Promise<null | Response>
+  public abstract updateTask(projectId: number, request: TaskPUTRequest): Promise<TaskModel>
 
   public abstract deleteTask(projectId: number, taskId: number): Promise<null | Response>
 

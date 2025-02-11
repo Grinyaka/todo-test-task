@@ -1,8 +1,8 @@
 import styles from './styles.module.css'
 
-import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
-import {useTasks} from 'src/hooks/useTasks'
-import {TaskStatus} from 'src/models/TaskModel'
+import { Droppable } from 'react-beautiful-dnd'
+import { useTasks } from 'src/hooks/useTasks'
+import { TaskStatus } from 'src/models/TaskModel'
 import TaskModal from './task-modal/TaskModal'
 
 type Props = {
@@ -10,32 +10,28 @@ type Props = {
 }
 
 const StatusColumn = ({status}: Props) => {
-  const {
-    tasks,
-    loading,
-    newTaskTitle,
-    handleChange,
-    handleCreateTask,
-    handleDeleteTask,
-  } = useTasks(status)
+  const {tasks, loading, newTaskTitle, handleChange, handleCreateTask, handleDeleteTask} =
+    useTasks(status)
   const currentTasks = tasks[status]
   return (
     <div className={styles.wrapper}>
       <div className={styles.wrapperHeader}>{status}</div>
-        <Droppable droppableId={status}>
-          {(provided) => (
+      <Droppable droppableId={status}>
+        {(provided) => (
+          <>
             <div
               className={styles.wrapperContent}
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
               {currentTasks.map((task, index) => (
-                  <TaskModal task={task} index={index} />
+                <TaskModal task={task} index={index} />
               ))}
-              {provided.placeholder}
             </div>
-          )}
-        </Droppable>
+            {provided.placeholder}
+          </>
+        )}
+      </Droppable>
 
       <form
         onSubmit={(e) => {
