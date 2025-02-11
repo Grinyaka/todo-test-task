@@ -1,15 +1,25 @@
-import React, { useState } from 'react'
+import React, {useState} from 'react'
 import ModalPortal from 'src/components/ModalPortal'
-import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
-import { TaskModel } from 'src/models/TaskModel'
+import {useDraggable} from '@dnd-kit/core'
+import {TaskModel} from 'src/models/TaskModel'
 import styles from '../styles.module.css'
 import modalStyles from './modal.module.css'
+
 type Props = {
-  task: TaskModel,
+  task: TaskModel
   index: number
 }
 
 const TaskModal = ({task, index}: Props) => {
+  const {attributes, listeners, setNodeRef, transform} = useDraggable({
+    id: task.id,
+    
+  })
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined
   const [isOpen, setIsOpen] = useState(false)
   const onClose = () => {
     setIsOpen(false)
@@ -18,32 +28,30 @@ const TaskModal = ({task, index}: Props) => {
     setIsOpen(true)
   }
   return (
-    <>
-      <Draggable key={task.id.toString()} draggableId={task.id.toString()} index={index}>
-        {(provided) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            className="modal-overlay"
-          >
-            <div onClick={onOpen} className={styles.cardTitle}>
-              {task.title} + {task.id}
-            </div>
-          </div>
-        )}
-      </Draggable>
+    <div
+      ref={setNodeRef}
+      className={styles.card}
+      style={style}
+      {...listeners}
+      {...attributes}
+    >
+      <div onClick={onOpen} className={styles.cardTitle}>
+        {task.title} + {task.id}
+      </div>
       {isOpen && (
         <ModalPortal>
           <div className={modalStyles.modalOverlay} onClick={onClose}>
-            <div className={modalStyles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div
+              className={modalStyles.modalContent}
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className={styles.cardTitle}>{task.title}</div>
               <button onClick={onClose}>Закрыть</button>
             </div>
           </div>
         </ModalPortal>
       )}
-    </>
+    </div>
   )
 }
 
