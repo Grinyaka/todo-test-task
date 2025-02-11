@@ -1,6 +1,9 @@
 import {CreateProjectInteractor} from './interactors/CreateProjectInteractor'
 import {CreateTaskInteractor} from './interactors/CreateTaskInteractor'
+import {DeleteProjectInteractor} from './interactors/DeleteProjectInteractor'
+import {DeleteTaskInteractor} from './interactors/DeleteTaskInteractor'
 import {GetProjectsListInteractor} from './interactors/GetProjectsListInteractor'
+import {GetTasksListInteractor} from './interactors/GetTasksListInteractor'
 import {ProjectsRepository} from './repository/projectsRepository/ProjectsRepository'
 import {ProjectsRepositoryLocal} from './repository/projectsRepository/ProjectsRepositoryLocal'
 import {TasksRepository} from './repository/tasksRepository/TasksRepository'
@@ -81,6 +84,27 @@ injectionKernel.set(
 )
 
 injectionKernel.set(
+  GetTasksListInteractor,
+  new Factory<GetTasksListInteractor>(() => new GetTasksListInteractor(getDIValue(TasksRepository)), false),
+)
+
+injectionKernel.set(
   CreateProjectInteractor,
   new Factory<CreateProjectInteractor>(() => new CreateProjectInteractor(getDIValue(ProjectsRepository)), false),
+)
+
+injectionKernel.set(
+  DeleteProjectInteractor,
+  new Factory<DeleteProjectInteractor>(
+    () => new DeleteProjectInteractor(getDIValue(ProjectsRepository), getDIValue(TasksRepository)),
+    false,
+  ),
+)
+
+injectionKernel.set(
+  DeleteTaskInteractor,
+  new Factory<DeleteTaskInteractor>(
+    () => new DeleteTaskInteractor(getDIValue(ProjectsRepository), getDIValue(TasksRepository)),
+    false,
+  ),
 )

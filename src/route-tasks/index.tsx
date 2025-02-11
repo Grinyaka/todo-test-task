@@ -1,29 +1,27 @@
-import './styles.css'
+import styles from './styles.module.css'
 
-import {useTasks} from 'src/hooks/useTasks'
-import {DateUtils} from 'src/utils/DateUtils'
+import { TaskStatus } from 'src/models/TaskModel'
+import StatusColumn from './StatusColumn'
+import {DragDropContext} from 'react-beautiful-dnd'
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 
 const RouteTasks = () => {
-  const {tasks, isLoading: isTasksLoading} = useTasks()
+  const dispatch = useDispatch()
+  useEffect(() => {
+    dispatch({type: 'PROJECTS', payload: 1})
+  }, [])
+        const onDragEnd = (result) => {
+          if (!result.destination) return
 
+          console.log(result)
+        }
   return (
-    <div>
-      {isTasksLoading ? (
-        <div>Loading...</div>
-      ) : (
-        tasks.map((task) => (
-          <div className='card' key={task.id}>
-            <div>{task.title}</div>
-            <div>{task.id}</div>
-            <div>{task.description}</div>
-            <div>{task.priority}</div>
-            <div>{task.status}</div>
-            <div>{task.workTime}</div>
-            <div>{DateUtils.toFormat(task.createdDate, DateUtils.DATE_FORMAT_SHORT)}</div>
-          </div>
-        ))
-      )}
-    </div>
+    <DragDropContext onDragEnd={onDragEnd} className={styles.columnsWrapper}>
+      <StatusColumn status={TaskStatus.queue} />
+      <StatusColumn status={TaskStatus.development} />
+      <StatusColumn status={TaskStatus.done} />
+    </DragDropContext>
   )
 }
 

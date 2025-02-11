@@ -1,0 +1,65 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 5px;
+  min-width: 150px;
+  max-width: 300px;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+.createProject {
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  width: 200px;
+}
+
+.createProject input {
+  width: auto;
+
+  background-color: var(--background-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.createProject input:focus-visible {
+  outline: none;
+}
+
+.createProject button {
+  width: 100px;
+
+  margin: 0;
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.deleteButton {
+  cursor: pointer;
+  padding: 10px 15px;
+  border: none;
+  background-color: transparent;
+
+  color: var(--text-tertiary);
+}

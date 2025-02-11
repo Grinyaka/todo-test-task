@@ -12,49 +12,63 @@ export class ProjectsRepositoryLocal extends ProjectsRepository {
   }
 
   public async getProjectsList(): Promise<ProjectModel[]> {
-    if (this.allProjects.length) return this.allProjects
+    if (this.allProjects.length > 0) return this.allProjects;
 
-    const data = localStorage.getItem(this.STORAGE_PROJECTS_NAME)
-    if (!data) return []
+    const storedData = localStorage.getItem(this.STORAGE_PROJECTS_NAME);
+    if (!storedData) return [];
 
-    const json: JsonObject<ProjectModel[]> = JSON.parse(data)
-    const response = json.map(ProjectModel.valueOfJson)
-    this.allProjects = response
-    localStorage.setItem(this.STORAGE_PROJECTS_NAME, JSON.stringify(response))
-    return response
+    const parsedData: JsonObject<ProjectModel[]> = JSON.parse(storedData);
+    const projects = parsedData.map(ProjectModel.valueOfJson);
+    this.allProjects = projects;
+    localStorage.setItem(this.STORAGE_PROJECTS_NAME, JSON.stringify(projects));
+    return projects;
   }
 
   public async addProject(projectTitle: string): Promise<ProjectModel> {
-    const newProject = new ProjectModel(this.allProjects.length, projectTitle, 0)
-    const newProjectsList = [...this.allProjects, newProject]
+    const newProject = new ProjectModel(
+      this.allProjects.length,
+      projectTitle,
+      0,
+    );
 
-    this.allProjects = newProjectsList
+    const updatedProjectsList = [newProject, ...this.allProjects];
 
-    localStorage.setItem(this.STORAGE_PROJECTS_NAME, JSON.stringify(newProjectsList))
+    this.allProjects = updatedProjectsList;
 
-    return newProject
+    localStorage.setItem(
+      this.STORAGE_PROJECTS_NAME,
+      JSON.stringify(updatedProjectsList),
+    );
+
+    return newProject;
   }
 
-  public async deleteProject(projectId: number): Promise<any> {
-    const newProjectsList = this.allProjects.filter((project) => project.id !== projectId)
+  public async deleteProject(projectId: number): Promise<Response> {
+    const filteredProjects = this.allProjects.filter(({ id }) => id !== projectId);
 
-    this.allProjects = newProjectsList
+    this.allProjects = filteredProjects;
 
-    localStorage.setItem(this.STORAGE_PROJECTS_NAME, JSON.stringify(newProjectsList))
+    localStorage.setItem(this.STORAGE_PROJECTS_NAME, JSON.stringify(filteredProjects));
 
-    return new Response('OK', {status: 200})
+    return new Response('OK', { status: 200 });
   }
 
-  public async updateProject(request: Partial<IProjectModel>): Promise<any> {
-    const index = this.allProjects.findIndex((project) => project.id === request.id)
+  public async updateProject(request: Partial<IProjectModel>): Promise<Response> {
+    const projectIndex = this.allProjects.findIndex(project => project.id === request.id);
 
-    this.allProjects[index] = ProjectModel.valueOfJson({
-      ...this.allProjects[index],
+    if (projectIndex === -1) {
+      return new Response('Project not found', { status: 404 });
+    }
+
+    const updatedProjectData = {
+      ...this.allProjects[projectIndex],
       ...request,
-    })
+    };
 
-    localStorage.setItem(this.STORAGE_PROJECTS_NAME, JSON.stringify(this.allProjects))
+    this.allProjects[projectIndex] = ProjectModel.valueOfJson(updatedProjectData);
 
-    return new Response('OK', {status: 200})
+    localStorage.setItem(this.STORAGE_PROJECTS_NAME, JSON.stringify(this.allProjects));
+
+    return new Response('OK', { status: 200 });
   }
 }

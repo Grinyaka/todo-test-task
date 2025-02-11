@@ -24,4 +24,8 @@ export class TasksRepositoryAPI extends TasksRepository {
   public async deleteTask(taskId: number): Promise<any> {
     return
   }
+
+  public async deleteProject(projectId: number): Promise<any> {
+    return
+  }
 }

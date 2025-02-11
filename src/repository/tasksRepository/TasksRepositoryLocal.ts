@@ -1,4 +1,3 @@
-import {BASE_API_URL} from 'src/utils/constants'
 import {TasksRepository} from './TasksRepository'
 import {TaskModel, TaskPriority, TaskStatus} from 'src/models/TaskModel'
 import {JsonObject} from 'src/types'
@@ -6,41 +5,40 @@ import {TaskPOSTRequest} from 'src/models/TaskPOSTRequest'
 import {TaskPUTRequest} from 'src/models/TaskPUTRequest'
 
 export class TasksRepositoryLocal extends TasksRepository {
-  // так, конечно, плохо делать, но бэка нет, а отслеживать текущие
-  private allTasks: Map<number, TaskModel[]>
+  // так, конечно, плохо делать, но тут пока что можно
+  private allTasks: {[key: number]: TaskModel[]}
   constructor() {
     super()
-    this.allTasks = new Map()
+    this.allTasks = {}
   }
 
   private STORAGE_TASKS_NAME = 'TASKS'
 
   public async getTasks(projectId: number, status: TaskStatus): Promise<TaskModel[]> {
-    if (this.allTasks.has(projectId)) {
-      return this.allTasks.get(projectId) || []
+    const storedTasks = this.allTasks[projectId]
+    if (storedTasks) {
+      return storedTasks.filter((task) => task.status === status)
     }
 
-    const data = localStorage.getItem(this.STORAGE_TASKS_NAME)
-    if (!data) return []
+    const storedData = localStorage.getItem(this.STORAGE_TASKS_NAME)
+    if (!storedData) return []
+    const parsedData: JsonObject<{[key:number]: TaskModel[]}> = JSON.parse(storedData)
+    const tasksForProject = parsedData[projectId]
+    if (!tasksForProject) return []
 
-    const json: JsonObject<Map<number, TaskModel[]>> = JSON.parse(data)
+    const taskModels = tasksForProject.map(TaskModel.valueOfJson)
+    this.allTasks[projectId] = taskModels
 
-    const tasksByProjectID = json.get(projectId)
-    if (!tasksByProjectID) return []
-    const result = tasksByProjectID.map(TaskModel.valueOfJson)
-
-    this.allTasks.set(projectId, result)
-
-    const filteredResult = result.filter((task) => task.status === status)
-    return filteredResult
+    return taskModels.filter((task) => task.status === status)
   }
 
   public async addTask(request: TaskPOSTRequest): Promise<TaskModel> {
-    const projectTasks = this.allTasks.get(request.projectId) || []
-
+    const projectId = request.projectId
+    const title = request.title
+    let tasksForProject = this.allTasks[projectId] || []
     const newTask = new TaskModel(
-      projectTasks.length,
-      request.title,
+      tasksForProject.length,
+      title,
       new Date(),
       '1h',
       new Date(),
@@ -51,47 +49,37 @@ export class TasksRepositoryLocal extends TasksRepository {
       [],
     )
 
-    projectTasks.push(newTask)
-
-    this.allTasks.set(request.projectId, projectTasks)
-
+    tasksForProject = [newTask, ...tasksForProject]
+    this.allTasks[projectId] = tasksForProject
     localStorage.setItem(this.STORAGE_TASKS_NAME, JSON.stringify(this.allTasks))
 
     return newTask
   }
 
-  public async updateTask(projectId: number, request: TaskPUTRequest): Promise<any> {
-    const projectTasks = this.allTasks.get(projectId) || []
+  public async updateTask(projectId: number, request: TaskPUTRequest): Promise<Response> {
+    const projectTasks = this.allTasks[projectId] || []
+    const taskIndex = projectTasks.findIndex((task) => task.id === request.id)
 
-    const index = projectTasks.findIndex((task) => task.id === request.id)
-
-    if (request.subtask) {
-      projectTasks[index].subtasks.push(request.subtask)
+    if (taskIndex === -1) {
+      return new Response('Task not found', {status: 404})
     }
 
-    if (request.file) {
-      projectTasks[index].files.push(request.file)
+    const task = projectTasks[taskIndex]
+    const updatedTask = {
+      ...task,
+      title: request.title || task.title,
+      endDate: request.endDate || task.endDate,
+      priority: request.priority || task.priority,
+      files: [...task.files, ...(request.file ? [request.file] : [])],
+      status: request.status || task.status,
+      subtasks: [...task.subtasks, ...(request.subtask ? [request.subtask] : [])],
+      comments: [...task.comments, ...(request.comment ? [request.comment] : [])],
+      description: request.description || task.description,
     }
 
-    if (request.comment) {
-      projectTasks[index].comments.push(request.comment)
-    }
+    projectTasks[taskIndex] = updatedTask
 
-    projectTasks[index] = TaskModel.valueOfJson({
-      id: request.id,
-      title: request.title || projectTasks[index].title,
-      createdDate: projectTasks[index].createdDate,
-      workTime: projectTasks[index].workTime,
-      endDate: request.endDate || projectTasks[index].endDate,
-      priority: request.priority || projectTasks[index].priority,
-      files: projectTasks[index].files,
-      status: request.status || projectTasks[index].status,
-      subtasks: projectTasks[index].subtasks,
-      comments: projectTasks[index].comments,
-      description: request.description || projectTasks[index].description,
-    })
-
-    this.allTasks.set(projectId, projectTasks)
+    this.allTasks[projectId] = projectTasks
 
     localStorage.setItem(this.STORAGE_TASKS_NAME, JSON.stringify(this.allTasks))
 
@@ -99,13 +87,25 @@ export class TasksRepositoryLocal extends TasksRepository {
   }
 
   public async deleteTask(projectId: number, taskId: number): Promise<any> {
-    const projectTasks = this.allTasks.get(projectId) || []
+    const tasks = this.allTasks[projectId] || []
 
-    const index = projectTasks.findIndex((task) => task.id === taskId)
-    projectTasks.splice(index, 1)
+    const taskIndex = tasks.findIndex((task) => task.id === taskId)
+    if (taskIndex !== -1) {
+      tasks.splice(taskIndex, 1)
+    }
 
-    this.allTasks.set(projectId, projectTasks)
+    this.allTasks[projectId] = tasks
 
     localStorage.setItem(this.STORAGE_TASKS_NAME, JSON.stringify(this.allTasks))
+
+    return new Response('OK', {status: 200})
+  }
+
+  public async deleteProject(projectId: number): Promise<Response> {
+    const tasks = this.allTasks
+    delete this.allTasks[projectId]
+    localStorage.setItem(this.STORAGE_TASKS_NAME, JSON.stringify(tasks))
+
+    return new Response('OK', {status: 200})
   }
 }

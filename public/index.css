@@ -1,6 +1,7 @@
 :root {
   --background-primary: #121212;
   --background-secondary: #1E1E1E;
+  --background-tertiary: #2E2E2E;
   --text-primary: #FFFFFF;
   --text-secondary: #B0B0B0;
   --text-tertiary: #6D6D6D;
@@ -16,13 +17,41 @@
   --error: #CF6679;
   --warning: #FFC107;
   --info: #2196F3;
-}
 
+  --font-size-small: 12px;
+  --font-size-medium: 14px;
+  --font-size-large: 16px;
+  --font-size-xlarge: 18px;
+}
+html,
+body {
+  overflow: hidden;
+  height: 100dvh;
+  margin: 0;
+}
+#root {
+  display: flex;
+  height: 100%;
+}
 body {
   background-color: var(--background-primary);
   color: var(--text-primary);
   font-family: 'Roboto', sans-serif;
-  font-size: 14px;
+  font-size: var(--font-size-medium);
+
+  width: 100dvw;
+}
+
+.page-container {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  max-width: 1400px;
+  margin: 0 auto;
+  margin: 20px auto;
+  width: 90%;
+  flex-grow: 1;
+  overflow-y: hidden;
 }
 
 .button-primary {
@@ -47,9 +76,4 @@ h2,
 h3 {
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
-}
-
-.task-id {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 14px;
 }

@@ -6,15 +6,17 @@ import RouteNotFound from './route-404'
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<RouteProjects />} />
-        <Route path="tasks/:id" element={<RouteTasks />} />
-        {/* 
+      <div className="page-container">
+        <Routes>
+          <Route path="/" element={<RouteProjects />} />
+          <Route path="tasks/:id" element={<RouteTasks />} />
+          {/* 
           <Route path="*" element={<RouteNotFound />} />  
 
           Не уверен, надо ли добавлять 404 с редиректом. 2 страницы по ТЗ
         */}
-      </Routes>
+        </Routes>
+      </div>
     </BrowserRouter>
   )
 }
